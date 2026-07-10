@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>郵便番号でお天気検索</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>📮 郵便番号でお天気検索</h1>
+      <p class="subtitle">郵便番号から住所を調べて、その場所の天気を表示します</p>
+    </header>
+
+    <form id="search-form" class="search-box">
+      <input
+        type="text"
+        id="zipcode-input"
+        placeholder="例: 100-0001"
+        inputmode="numeric"
+        maxlength="8"
+        autocomplete="off"
+      >
+      <button type="submit" id="search-button">検索</button>
+    </form>
+
+    <div id="message" class="message" hidden></div>
+
+    <div id="loading" class="loading" hidden>
+      <div class="spinner"></div>
+      <span>検索中...</span>
+    </div>
+
+    <div id="result" class="result" hidden>
+      <section class="address-card">
+        <h2 id="address-text"></h2>
+        <p id="zipcode-text" class="zipcode-text"></p>
+      </section>
+
+      <section class="weather-card">
+        <div class="weather-main">
+          <div class="weather-icon" id="current-icon"></div>
+          <div class="weather-temp" id="current-temp"></div>
+        </div>
+        <p class="weather-desc" id="current-desc"></p>
+        <div class="weather-sub">
+          <span id="current-wind"></span>
+          <span id="current-humidity"></span>
+        </div>
+      </section>
+
+      <section class="forecast-card">
+        <h3>5日間の予報</h3>
+        <div class="forecast-list" id="forecast-list"></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
