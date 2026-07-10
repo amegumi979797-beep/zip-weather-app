@@ -1,6 +1,7 @@
 const ZIPCLOUD_ENDPOINT = "https://zipcloud.ibsnet.co.jp/api/search";
 const GEOCODING_ENDPOINT = "https://geocoding-api.open-meteo.com/v1/search";
 const FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
+const REVERSE_GEOCODING_ENDPOINT = "https://api.bigdatacloud.net/data/reverse-geocode-client";
 
 // WMO weather code -> [絵文字, 説明]
 const WEATHER_CODE_MAP = {
@@ -89,9 +90,12 @@ geoButton.addEventListener("click", () => {
     async (position) => {
       try {
         const { latitude, longitude } = position.coords;
-        const weather = await fetchWeather(latitude, longitude);
+        const [weather, placeName] = await Promise.all([
+          fetchWeather(latitude, longitude),
+          reverseGeocode(latitude, longitude),
+        ]);
         renderResult({
-          title: "現在地の天気",
+          title: placeName || "現在地の天気",
           subtitle: `緯度 ${latitude.toFixed(2)} / 経度 ${longitude.toFixed(2)}`,
           weather,
         });
@@ -173,6 +177,25 @@ async function geocodeAddress(address) {
   }
 
   throw new Error("この住所の位置情報が見つかりませんでした");
+}
+
+async function reverseGeocode(latitude, longitude) {
+  try {
+    const params = new URLSearchParams({
+      latitude,
+      longitude,
+      localityLanguage: "ja",
+    });
+    const res = await fetch(`${REVERSE_GEOCODING_ENDPOINT}?${params.toString()}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const parts = [data.principalSubdivision, data.locality || data.city].filter(
+      (part, index, arr) => Boolean(part) && arr.indexOf(part) === index
+    );
+    return parts.length > 0 ? parts.join("") : null;
+  } catch {
+    return null;
+  }
 }
 
 async function fetchWeather(latitude, longitude) {
