@@ -106,6 +106,30 @@ h1 {
   cursor: not-allowed;
 }
 
+.geo-button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.15s ease;
+}
+
+.geo-button:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--card-bg));
+}
+
+.geo-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .message {
   background: color-mix(in srgb, var(--error) 12%, transparent);
   color: var(--error);

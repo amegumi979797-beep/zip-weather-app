@@ -41,6 +41,7 @@ function weatherInfo(code) {
 const form = document.getElementById("search-form");
 const input = document.getElementById("zipcode-input");
 const button = document.getElementById("search-button");
+const geoButton = document.getElementById("geo-button");
 const messageEl = document.getElementById("message");
 const loadingEl = document.getElementById("loading");
 const resultEl = document.getElementById("result");
@@ -62,12 +63,53 @@ form.addEventListener("submit", async (event) => {
     const address = await fetchAddress(zipcode);
     const location = await geocodeAddress(address);
     const weather = await fetchWeather(location.latitude, location.longitude);
-    renderResult(zipcode, address, weather);
+    renderResult({
+      title: `${address.prefecture}${address.city}${address.town}`,
+      subtitle: `〒${zipcode.slice(0, 3)}-${zipcode.slice(3)}`,
+      weather,
+    });
   } catch (err) {
     showMessage(err.message || "検索中にエラーが発生しました");
   } finally {
     setLoading(false);
   }
+});
+
+geoButton.addEventListener("click", () => {
+  hideMessage();
+  resultEl.hidden = true;
+
+  if (!("geolocation" in navigator)) {
+    showMessage("お使いのブラウザは位置情報に対応していません");
+    return;
+  }
+
+  setLoading(true);
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      try {
+        const { latitude, longitude } = position.coords;
+        const weather = await fetchWeather(latitude, longitude);
+        renderResult({
+          title: "現在地の天気",
+          subtitle: `緯度 ${latitude.toFixed(2)} / 経度 ${longitude.toFixed(2)}`,
+          weather,
+        });
+      } catch (err) {
+        showMessage(err.message || "検索中にエラーが発生しました");
+      } finally {
+        setLoading(false);
+      }
+    },
+    (err) => {
+      setLoading(false);
+      if (err.code === err.PERMISSION_DENIED) {
+        showMessage("位置情報の利用が許可されませんでした。ブラウザの設定を確認してください");
+      } else {
+        showMessage("現在地の取得に失敗しました");
+      }
+    }
+  );
 });
 
 function normalizeZipcode(value) {
@@ -77,6 +119,7 @@ function normalizeZipcode(value) {
 function setLoading(isLoading) {
   loadingEl.hidden = !isLoading;
   button.disabled = isLoading;
+  geoButton.disabled = isLoading;
 }
 
 function showMessage(text) {
@@ -159,13 +202,9 @@ function findCurrentHumidity(weather) {
   return weather.hourly.relative_humidity_2m[idx];
 }
 
-function renderResult(zipcode, address, weather) {
-  document.getElementById(
-    "address-text"
-  ).textContent = `${address.prefecture}${address.city}${address.town}`;
-  document.getElementById(
-    "zipcode-text"
-  ).textContent = `〒${zipcode.slice(0, 3)}-${zipcode.slice(3)}`;
+function renderResult({ title, subtitle, weather }) {
+  document.getElementById("address-text").textContent = title;
+  document.getElementById("zipcode-text").textContent = subtitle;
 
   const cw = weather.current_weather;
   const [icon, desc] = weatherInfo(cw.weathercode);
